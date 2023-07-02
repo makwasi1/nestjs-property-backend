@@ -8,7 +8,7 @@ import { StudentController } from './controller/student/student.controller';
 
 @Module({
   imports: [
-    MongooseModule.forRoot('mongodb+srv://makwasi:makwasi@cluster0.1zrjxib.mongodb.net/?retryWrites=true&w=majority'),
+    MongooseModule.forRoot(''),
      MongooseModule.forFeature([{ name: 'nest' , schema: StudentsSchema}])
   ],
   controllers: [AppController, StudentController],
