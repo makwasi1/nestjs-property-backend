@@ -32,33 +32,52 @@ export class AuthService {
             throw new HttpException('User not found', 404);
         }
 
-        const checkPassword = await bcrypt.compare(password, (checkUserExists.password).toString());
-        
-        if(!checkPassword) {    
-            throw new HttpException('Invalid credentials', 401);
-        } else {
-            console.log("pass", checkUserExists._id);
-            const accessToken =  this.generateJWT({
-                sub: checkUserExists._id,
-                email: checkUserExists.email,
-                name: checkUserExists.name,
-            });
-
-            console.log("accessToken", accessToken);
-
-            return {
-                statusCode: 200,
-                message: 'Login success',
-                // accessToken: accessToken,
+        bcrypt.compare(password, checkUserExists.password, (err, result) => {
+            if (err) {
+                throw new HttpException('Invalid credentials', 401);
             }
-        }
+            if (result) {
+                const accessToken = this.generateJWT({
+                    sub: checkUserExists._id,
+                    email: checkUserExists.email,
+                    name: checkUserExists.name,
+                });
+                return {
+                    statusCode: 200,
+                    message: 'Login success',
+                    accessToken: accessToken,
+                };
+            }
+        });
+        // if(!checkPassword) {    
+        //     throw new HttpException('Invalid credentials', 401);
+        // } else {
+        //     console.log("pass", checkUserExists._id);
+        //     const accessToken =  this.generateJWT({
+        //         sub: checkUserExists._id,
+        //         email: checkUserExists.email,
+        //         name: checkUserExists.name,
+        //     });
+
+        //     console.log("accessToken", accessToken);
+
+        //     return {
+        //         statusCode: 200,
+        //         message: 'Login success',
+        //         // accessToken: accessToken,
+        //     }
+        // }
     }
 
     generateJWT(payload: any) {
-        return this.jwtService.sign(payload, {
-            secret: jwt_config.secret,
-            expiresIn: jwt_config.expired,
-        });
+        try {
+            return this.jwtService.sign(payload, {
+                secret: jwt_config.secret,
+                expiresIn: jwt_config.expired,
+            });
+        } catch (error) {
+            throw new HttpException('Invalid credentials', 401);
+        }
     }
 
 }
