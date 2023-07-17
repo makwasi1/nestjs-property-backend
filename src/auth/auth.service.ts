@@ -46,7 +46,7 @@ export class AuthService {
             throw new HttpException('Invalid credentials', 401);
         }
     }
-    
+    //generate access token
 
     generateJWT(payload: any) {
         try {
