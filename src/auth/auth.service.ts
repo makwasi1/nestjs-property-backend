@@ -50,6 +50,7 @@ export class AuthService {
 
     generateJWT(payload: any) {
         try {
+            //retun the token
             return this.jwtService.sign(payload);
         } catch (error) {
             throw new HttpException('Invalid credentials', 401);
