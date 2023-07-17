@@ -30,7 +30,7 @@ const databaseUrl = 'mongodb+srv://makwasi:makwasi@cluster0.1zrjxib.mongodb.net/
       }
     }),
     MongooseModule.forRoot('mongodb+srv://makwasi:makwasi@cluster0.1zrjxib.mongodb.net/?retryWrites=true&w=majority'),
-     MongooseModule.forFeature([{ name: 'nest' , schema: StudentsSchema},{name: 'user', schema: UsersSchema}]),
+    MongooseModule.forFeature([{ name: 'nest' , schema: StudentsSchema},{name: 'user', schema: UsersSchema}]),
      
   ],
   controllers: [AppController, StudentController, AuthController],

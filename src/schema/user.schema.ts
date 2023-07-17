@@ -1,5 +1,5 @@
 import {Prop, Schema, SchemaFactory} from '@nestjs/mongoose';
-import { IsEmail } from 'class-validator';
+
 
 @Schema()
 export class User {

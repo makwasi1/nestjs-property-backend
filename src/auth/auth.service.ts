@@ -5,76 +5,52 @@ import { RegisterDto } from 'src/dto/auth/user-auth.dto';
 import { IUsers } from 'src/interface/auth.interface';
 import * as bcrypt from 'bcrypt';
 import { jwt_config } from 'src/config';
-import { log } from 'console';
+import { JwtService } from '@nestjs/jwt';
+
+
 
 
 @Injectable()
 export class AuthService {
-    jwtService: any;
-    constructor(@InjectModel('user') private userModel: Model<IUsers>) {}
+    constructor(@InjectModel('user') private userModel: Model<IUsers>, private jwtService: JwtService) { }
 
     async register(registerDto: RegisterDto): Promise<IUsers> {
         // TODO: create repository for user
-        const checkUserExists = await this.userModel.findOne({email: registerDto.email});
+        const checkUserExists = await this.userModel.findOne({ email: registerDto.email });
 
-        if(checkUserExists) {
+        if (checkUserExists) {
             throw new HttpException('User already exists', 400);
         }
-        registerDto.password =  await bcrypt.hash(registerDto.password, 10);
+        registerDto.password = await bcrypt.hash(registerDto.password, 10);
         const createUser = new this.userModel(registerDto);
         return createUser.save();
     }
 
     async login(email: string, password: string): Promise<any> {
-        const checkUserExists = await this.userModel.findOne({email: email});
-
-        if(!checkUserExists) {
+        const checkUserExists = await this.userModel.findOne({ email: email });
+    
+        if (!checkUserExists) {
             throw new HttpException('User not found', 404);
         }
-
-        bcrypt.compare(password, checkUserExists.password, (err, result) => {
-            if (err) {
-                throw new HttpException('Invalid credentials', 401);
-            }
-            if (result) {
-                const accessToken = this.generateJWT({
-                    sub: checkUserExists._id,
-                    email: checkUserExists.email,
-                    name: checkUserExists.name,
-                });
-                return {
-                    statusCode: 200,
-                    message: 'Login success',
-                    accessToken: accessToken,
-                };
-            }
-        });
-        // if(!checkPassword) {    
-        //     throw new HttpException('Invalid credentials', 401);
-        // } else {
-        //     console.log("pass", checkUserExists._id);
-        //     const accessToken =  this.generateJWT({
-        //         sub: checkUserExists._id,
-        //         email: checkUserExists.email,
-        //         name: checkUserExists.name,
-        //     });
-
-        //     console.log("accessToken", accessToken);
-
-        //     return {
-        //         statusCode: 200,
-        //         message: 'Login success',
-        //         // accessToken: accessToken,
-        //     }
-        // }
+    
+        const result = await bcrypt.compare(password, checkUserExists.password);
+    
+        if (result) {
+            const payload = { username: checkUserExists.name, sub: checkUserExists._id };
+            return {
+                statusCode: 200,
+                message: 'Login success',
+                accessToken: this.generateJWT(payload),
+            };
+        } else {
+            throw new HttpException('Invalid credentials', 401);
+        }
     }
+    
 
     generateJWT(payload: any) {
         try {
-            return this.jwtService.sign(payload, {
-                secret: jwt_config.secret,
-                expiresIn: jwt_config.expired,
-            });
+            return this.jwtService.sign(payload);
         } catch (error) {
             throw new HttpException('Invalid credentials', 401);
         }
