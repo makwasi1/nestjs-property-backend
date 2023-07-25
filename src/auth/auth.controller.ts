@@ -16,10 +16,21 @@ export class AuthController {
     async register(@Res() response, @Body() registerDto:  RegisterDto) {
         try {
             const newUser = await this.authService.register(registerDto);
-            return response.status(200).json({
-                message: 'User registered successfully',
-                newUser
-            })
+            await this.authService.sendEmailVerification(newUser.email);
+
+            let sent = await this.authService.sendEmailVerification(newUser.email);
+            console.log(sent);
+            if (sent) {
+                return response.status(200).json({
+                    message: 'User registered successfully',
+                    newUser
+                })
+            } else {
+                return response.status(400).json({
+                    message: 'Error: User not registered!',
+                })
+            }
+        
         } catch (error) {
             return response.status(400).json({
                 message: 'Error: User not registered!',
@@ -48,7 +59,7 @@ export class AuthController {
     }
 
     @UseGuards(AuthGuard)
-    @Get('profile')
+    @Get('user/profile')
     getProfile() {
         return 'profile';
     }

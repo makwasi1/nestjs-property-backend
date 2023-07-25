@@ -4,11 +4,13 @@ import { Model } from 'mongoose';
 import { RegisterDto } from 'src/dto/auth/user-auth.dto';
 import { IUsers } from 'src/interface/auth.interface';
 import * as bcrypt from 'bcrypt';
+import * as nodemailer from 'nodemailer';
 import { jwt_config } from 'src/config';
 import { JwtService } from '@nestjs/jwt';
 import { ConsentRegistry } from 'src/interface/consentregistry.interface';
 import { EmailVerification } from 'src/interface/emailVerification.interface';
 import { ForgottenPassword } from 'src/interface/forgottenpassword.interface';
+import { log } from 'console';
 
 
 
@@ -130,6 +132,88 @@ export class AuthService {
         }
     }
 
+    async sendEmailVerification(email: string): Promise<boolean> {
+        let model = await this.emailVerificationModel.findOne({ email: email });
+
+        if(model && model.emailToken){
+            let transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: 'crisengoma12@gmail.com', // generated ethereal user
+                    pass: 'oxmcefruplbriadl' // generated ethereal password
+                }
+            });
+
+            // send mail with defined transport object
+            let mailOptions = {
+                from: '"Company" <' +  + '>', 
+                to: email, // list of receivers (separated by ,)
+                subject: 'Verify Email', 
+                text: 'Verify Email', 
+                html: 'Hi! <br><br> Thanks for your registration<br><br>'+
+                '<a href='+  + ':' +  +'/auth/email/verify/'+ model.emailToken + '>Click here to activate your account</a>'  // html body
+              };
+
+            let sent = await new Promise<boolean>(async function (resolve, reject) {
+                return await transporter.sendMail(mailOptions, async (error, info) => {
+                    if (error) {
+                        console.log('Message sent: %s', error);
+                        reject(false);
+                    }
+                    console.log('Message sent: %s', info.messageId);
+                    resolve(true);
+                })
+                
+            })  
+            return sent;
+        } else {
+            throw new HttpException('Invalid token', 400);
+        }
+    }
+
+    async sendEmailForgotPassword(email: string): Promise<boolean> {
+        var userFromDb = await this.userModel.findOne({ email: email});
+        if(!userFromDb) throw new HttpException('LOGIN.USER_NOT_FOUND', 400);
     
+        var tokenModel = await this.createForgottenPasswordToken(email);
+    
+        if(tokenModel && tokenModel.newPasswordToken){
+            let transporter = nodemailer.createTransport({
+                host: 'smtp.gmail.com',
+                port: 587,
+                secure: false, // true for 465, false for other ports
+                auth: {
+                    user: '',
+                    pass: ''
+                }
+            });
+        
+            let mailOptions = {
+              from: '"Company" <' + + '>', 
+              to: email, // list of receivers (separated by ,)
+              subject: 'Frogotten Password', 
+              text: 'Forgot Password',
+              html: 'Hi! <br><br> If you requested to reset your password<br><br>'+
+              '<a href='+ + ':' +  +'/auth/email/reset-password/'+ tokenModel.newPasswordToken + '>Click here</a>'  // html body
+            };
+        
+            var sent = await new Promise<boolean>(async function(resolve, reject) {
+              return await transporter.sendMail(mailOptions, async (error, info) => {
+                  if (error) {      
+                    console.log('Message sent: %s', error);
+                    return reject(false);
+                  }
+                  console.log('Message sent: %s', info.messageId);
+                  resolve(true);
+              });      
+            })
+    
+            return sent;
+        } else {
+          throw new HttpException('REGISTER.USER_NOT_REGISTERED', 404);
+        }
+      }
+
+
 
 }
