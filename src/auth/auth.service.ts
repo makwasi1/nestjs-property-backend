@@ -23,6 +23,7 @@ export class AuthService {
         @InjectModel('ConsentRegistry') private readonly consentRegistryModel: Model<ConsentRegistry>,
         private jwtService: JwtService) { }
 
+
     async register(registerDto: RegisterDto): Promise<IUsers> {
         // TODO: create repository for user
         const checkUserExists = await this.userModel.findOne({ email: registerDto.email });
@@ -96,12 +97,12 @@ export class AuthService {
             let forgottenPassword = await this.forgottenPasswordModel.findOneAndUpdate({
                 email: email
             },
-            {
-                email: email,
-                newPasswordToken: (Math.floor(Math.random() * (9000000)) + 1000000).toString(), //Generate 7 digits number,
-                timestamp: new Date()
-            },
-            { upsert: true, new: true, setDefaultsOnInsert: true }
+                {
+                    email: email,
+                    newPasswordToken: (Math.floor(Math.random() * (9000000)) + 1000000).toString(), //Generate 7 digits number,
+                    timestamp: new Date()
+                },
+                { upsert: true, new: true, setDefaultsOnInsert: true }
             );
             if (forgottenPassword) {
                 return forgottenPassword;
@@ -111,12 +112,29 @@ export class AuthService {
         }
     }
 
+    async checkPassword(email: string, password: string) {
+        var userFromDb = await this.userModel.findOne({ email: email });
+        if (!userFromDb) throw new HttpException('LOGIN.USER_NOT_FOUND', 404);
+
+        return await bcrypt.compare(password, userFromDb.password);
+    }
+
+    async setPassword(email: string, newPassword: string): Promise<boolean> {
+        var userFromDb = await this.userModel.findOne({ email: email });
+        if (!userFromDb) throw new HttpException('LOGIN.USER_NOT_FOUND', 404);
+
+        userFromDb.password = await bcrypt.hash(newPassword, 10);
+
+        await userFromDb.save();
+        return true;
+    }
+
     async verifyEmail(token: string): Promise<boolean> {
-        let emailVerif = await this.emailVerificationModel.findOne({emailToken: token});
-        if(emailVerif && emailVerif.email) {
-            let userFromDb = await this.userModel.findOne({email: emailVerif.email});
-            if(userFromDb) {
-               return true; //TODO: update user emailVerified to true
+        let emailVerif = await this.emailVerificationModel.findOne({ emailToken: token });
+        if (emailVerif && emailVerif.email) {
+            let userFromDb = await this.userModel.findOne({ email: emailVerif.email });
+            if (userFromDb) {
+                return true; //TODO: update user emailVerified to true
             }
         } else {
             throw new HttpException('Invalid token', 400);
@@ -135,27 +153,22 @@ export class AuthService {
     async sendEmailVerification(email: string): Promise<boolean> {
         let model = await this.emailVerificationModel.findOne({ email: email });
 
-        if(model && model.emailToken){
-            let transporter = nodemailer.createTransport({
-                service: 'gmail',
-                auth: {
-                    user: 'crisengoma12@gmail.com', // generated ethereal user
-                    pass: 'oxmcefruplbriadl' // generated ethereal password
-                }
-            });
-
+        if (model && model.emailToken) {
+            console.log('model.emailToken', model.emailToken);
+            let transporter = this.emailSetup();
+            transporter.verify().then(console.log).catch(console.error);
             // send mail with defined transport object
             let mailOptions = {
-                from: '"Company" <' +  + '>', 
+                from: '"Aesari Property" <' + + '>',
                 to: email, // list of receivers (separated by ,)
-                subject: 'Verify Email', 
-                text: 'Verify Email', 
-                html: 'Hi! <br><br> Thanks for your registration<br><br>'+
-                '<a href='+  + ':' +  +'/auth/email/verify/'+ model.emailToken + '>Click here to activate your account</a>'  // html body
-              };
+                subject: 'Verify Email',
+                text: 'Verify Email',
+                html: 'Hi! <br><br> Thanks for your registration. Please use this link to verify your account.<br><br>' +
+                    '<a href='+'http://localhost:3000/auth/verify/' + model.emailToken + '>Click here to activate your account</a>'  // html body
+            };
 
             let sent = await new Promise<boolean>(async function (resolve, reject) {
-                return await transporter.sendMail(mailOptions, async (error, info) => {
+                return transporter.sendMail(mailOptions, async (error: any, info: { messageId: any; }) => {
                     if (error) {
                         console.log('Message sent: %s', error);
                         reject(false);
@@ -163,56 +176,60 @@ export class AuthService {
                     console.log('Message sent: %s', info.messageId);
                     resolve(true);
                 })
-                
-            })  
+
+            })
             return sent;
         } else {
             throw new HttpException('Invalid token', 400);
         }
     }
 
+    private emailSetup() {
+        return nodemailer.createTransport({
+            host: process.env.MAIL_HOST,
+            port: 587,
+            secure: false, // true for 465, false for other ports
+            auth: {
+                user: process.env.SMTP_USERNAME, // generated ethereal user
+                pass: process.env.SMTP_PASSWORD // generated ethereal password
+            }
+        });
+    }
+
     async sendEmailForgotPassword(email: string): Promise<boolean> {
-        var userFromDb = await this.userModel.findOne({ email: email});
-        if(!userFromDb) throw new HttpException('LOGIN.USER_NOT_FOUND', 400);
-    
+        var userFromDb = await this.userModel.findOne({ email: email });
+        if (!userFromDb) throw new HttpException('LOGIN.USER_NOT_FOUND', 400);
+
         var tokenModel = await this.createForgottenPasswordToken(email);
-    
-        if(tokenModel && tokenModel.newPasswordToken){
-            let transporter = nodemailer.createTransport({
-                host: 'smtp.gmail.com',
-                port: 587,
-                secure: false, // true for 465, false for other ports
-                auth: {
-                    user: '',
-                    pass: ''
-                }
-            });
-        
+
+        if (tokenModel && tokenModel.newPasswordToken) {
+            let transporter = this.emailSetup();
+
             let mailOptions = {
-              from: '"Company" <' + + '>', 
-              to: email, // list of receivers (separated by ,)
-              subject: 'Frogotten Password', 
-              text: 'Forgot Password',
-              html: 'Hi! <br><br> If you requested to reset your password<br><br>'+
-              '<a href='+ + ':' +  +'/auth/email/reset-password/'+ tokenModel.newPasswordToken + '>Click here</a>'  // html body
+                from: '"Company" <' + + '>',
+                to: email, // list of receivers (separated by ,)
+                subject: 'Frogotten Password',
+                text: 'Forgot Password',
+                html: 'Hi! <br><br> If you requested to reset your password<br><br>' +
+                    '<a href='+'http://localhost:3000/auth/reset-password/' + tokenModel.newPasswordToken + '>Click here</a>'  // html body
             };
-        
-            var sent = await new Promise<boolean>(async function(resolve, reject) {
-              return await transporter.sendMail(mailOptions, async (error, info) => {
-                  if (error) {      
-                    console.log('Message sent: %s', error);
-                    return reject(false);
-                  }
-                  console.log('Message sent: %s', info.messageId);
-                  resolve(true);
-              });      
+
+            var sent = await new Promise<boolean>(async function (resolve, reject) {
+                return transporter.sendMail(mailOptions, async (error: any, info: { messageId: any; }) => {
+                    if (error) {
+                        console.log('Message sent: %s', error);
+                        return reject(false);
+                    }
+                    console.log('Message sent: %s', info.messageId);
+                    resolve(true);
+                });
             })
-    
+
             return sent;
         } else {
-          throw new HttpException('REGISTER.USER_NOT_REGISTERED', 404);
+            throw new HttpException('REGISTER.USER_NOT_REGISTERED', 404);
         }
-      }
+    }
 
 
 

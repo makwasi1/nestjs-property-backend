@@ -11,6 +11,7 @@ import { UsersSchema } from './schema/user.schema';
 import { AuthService } from './auth/auth.service';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
+import { ConfigModule } from '@nestjs/config';
 import { jwt_config } from './config';
 import { JwtStrategy } from './auth/jwt-strategy';
 import { EmailVerificationSchema } from './schema/emailVerification.schema';
@@ -20,6 +21,9 @@ import { ConsentRegistrySchema } from './schema/consentregistry.schema';
 const databaseUrl = 'mongodb+srv://makwasi:makwasi@cluster0.1zrjxib.mongodb.net/?retryWrites=true&w=majority';
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true, // no need to import into other modules
+    }),
     // AuthModule,
     PassportModule.register({
       defaultStrategy: 'jwt',
