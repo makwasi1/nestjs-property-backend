@@ -17,6 +17,7 @@ import { JwtStrategy } from './auth/jwt-strategy';
 import { EmailVerificationSchema } from './schema/emailVerification.schema';
 import { ForgottenPasswordSchema } from './schema/forgottenpassword.schema';
 import { ConsentRegistrySchema } from './schema/consentregistry.schema';
+import { UserModule } from './user/user.module';
 
 const databaseUrl = 'mongodb+srv://makwasi:makwasi@cluster0.1zrjxib.mongodb.net/?retryWrites=true&w=majority';
 @Module({
@@ -42,6 +43,7 @@ const databaseUrl = 'mongodb+srv://makwasi:makwasi@cluster0.1zrjxib.mongodb.net/
     { name: 'EmailVerification', schema: EmailVerificationSchema },
     { name: 'ForgottenPassword', schema: ForgottenPasswordSchema },
     { name: 'ConsentRegistry', schema: ConsentRegistrySchema }]),
+    UserModule,
 
 
   ],
