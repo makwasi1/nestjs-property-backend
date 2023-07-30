@@ -10,7 +10,7 @@ import { ResponseError, ResponseSuccess } from 'src/dto/response.dto';
 import { UserDto } from './dto/user.dto';
 import { ProfileDto } from './dto/profile.dto';
 
-@Controller('user')
+@Controller('users')
 @UseGuards(AuthGuard('jwt'))
 @UseInterceptors(LoggingInterceptor, TransformInterceptor)
 export class UserController {
@@ -30,9 +30,10 @@ export class UserController {
     }
 
     @Post('profile/update')
-    @UseGuards(RolesGuard)
+    // @UseGuards(RolesGuard)
     @Roles('User')
     async updateProfile(@Body() profileDto: ProfileDto): Promise<IResponse> {
+        console.log(profileDto);
         try {
             var user = await this.userService.updateProfile(profileDto);
             return new ResponseSuccess("PROFILE.UPDATE_SUCCESS", new UserDto(user));
