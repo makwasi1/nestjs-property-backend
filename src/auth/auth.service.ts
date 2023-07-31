@@ -51,6 +51,7 @@ export class AuthService {
                 statusCode: 200,
                 message: 'Login success',
                 accessToken: this.generateJWT(payload),
+                userId: checkUserExists._id,
             };
         } else {
             throw new HttpException('Invalid credentials', 401);

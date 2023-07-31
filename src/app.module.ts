@@ -2,10 +2,9 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { MongooseModule } from '@nestjs/mongoose';
-import { StudentsSchema } from './schema/student.schema';
-import { StudentService } from './service/student/student.service';
-import { StudentController } from './controller/student/student.controller';
-import { AuthModule } from './auth/auth.module';
+import { PropertySchema } from './schema/property.schema';
+import { PropertyService } from './service/student/property.service';
+import { PropertyController} from './controller/property/property.controller';
 import { AuthController } from './auth/auth.controller';
 import { UserSchema } from './schema/user.schema';
 import { AuthService } from './auth/auth.service';
@@ -18,8 +17,6 @@ import { EmailVerificationSchema } from './schema/emailVerification.schema';
 import { ForgottenPasswordSchema } from './schema/forgottenpassword.schema';
 import { ConsentRegistrySchema } from './schema/consentregistry.schema';
 import { UserModule } from './user/user.module';
-import { UserController } from './user/user.controller';
-import { UserService } from './user/user.service';
 import { PaymentsModule } from './payments/payments.module';
 
 const databaseUrl = 'mongodb+srv://makwasi:makwasi@cluster0.1zrjxib.mongodb.net/?retryWrites=true&w=majority';
@@ -41,7 +38,7 @@ const databaseUrl = 'mongodb+srv://makwasi:makwasi@cluster0.1zrjxib.mongodb.net/
       }
     }),
     MongooseModule.forRoot('mongodb+srv://makwasi:makwasi@cluster0.1zrjxib.mongodb.net/?retryWrites=true&w=majority'),
-    MongooseModule.forFeature([{ name: 'nest', schema: StudentsSchema },
+    MongooseModule.forFeature([{ name: 'property', schema: PropertySchema }, 
     { name: 'user', schema: UserSchema },
     { name: 'EmailVerification', schema: EmailVerificationSchema },
     { name: 'ForgottenPassword', schema: ForgottenPasswordSchema },
@@ -49,7 +46,7 @@ const databaseUrl = 'mongodb+srv://makwasi:makwasi@cluster0.1zrjxib.mongodb.net/
     UserModule,
     PaymentsModule
   ],
-  controllers: [AppController, StudentController, AuthController],
-  providers: [AppService, StudentService, AuthService, JwtStrategy],
+  controllers: [AppController, PropertyController, AuthController],
+  providers: [AppService, PropertyService, AuthService, JwtStrategy],
 })
 export class AppModule { }
