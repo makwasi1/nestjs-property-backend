@@ -23,7 +23,7 @@ export class PaymentsService {
                     description: paymentDto.description,
                     amount: paymentDto.amount,
                     currency: paymentDto.currency,
-                    app_fee: "500",
+                    app_fee: "50",
                 },
                 mandate_request: {
                     scheme: "bacs"

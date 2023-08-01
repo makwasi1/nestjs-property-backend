@@ -1,8 +1,9 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { PaymentDto } from './dto/payment.dto';
 import { IResponse } from 'src/interface/reponse.interface';
 import { ResponseSuccess } from 'src/dto/response.dto';
+import { AuthGuard } from './auth.guard';
 
 
 @Controller('payments')
@@ -10,6 +11,7 @@ export class PaymentsController {
     constructor(private readonly paymentService: PaymentsService) { }
 
     @Post('create/billing-request')
+    @UseGuards(AuthGuard)
     async createBillingRequest(@Body() paymentDto: PaymentDto) {
         try {
             let billingReference = await this.paymentService.createBillingRequest(paymentDto);

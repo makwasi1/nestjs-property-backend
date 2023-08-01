@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, UseGuards, UseInterceptors } from '@nestjs/common';
 import { UserService } from './user.service';
 import { AuthGuard } from '@nestjs/passport';
 import { LoggingInterceptor } from 'src/commons/interceptors/logging.interceptors';
@@ -29,7 +29,7 @@ export class UserController {
         }
     }
 
-    @Post('profile/update')
+    @Put('profile/update')
     // @UseGuards(RolesGuard)
     @Roles('User')
     async updateProfile(@Body() profileDto: ProfileDto): Promise<IResponse> {

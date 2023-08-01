@@ -6,4 +6,5 @@ export class ProfileDto {
     readonly phone: string;
     readonly birthdaydate: Date;
     readonly profilePic: string;
+    readonly userId: string;
 }
