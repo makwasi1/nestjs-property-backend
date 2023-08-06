@@ -23,10 +23,11 @@ export class PaymentsController {
 
     }
 
-    @Get('user-payments/:email')
+    @Get('user-payments/:id')
+    @UseGuards(AuthGuard)
     async findByEmail(@Param() param: any): Promise<IResponse> {
         try {
-            let user = await this.paymentService.findByEmail(param.email);
+            let user = await this.paymentService.findByUserId(param.id);
             return new ResponseSuccess("USER.FOUND", user)
         } catch (error) {
             return new ResponseSuccess("USER.NOT_FOUND", error)

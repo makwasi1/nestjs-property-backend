@@ -10,8 +10,8 @@ export class PaymentsService {
     constructor(@InjectModel('Payments') private paymentModel: Model<IPayments>) { }
 
 
-    async findByEmail(email: string): Promise<IPayments> {
-        return await this.paymentModel.findOne({ email: email }).exec();
+    async findByUserId(userId: string): Promise<IPayments[]> {
+        return await this.paymentModel.find({ userId: userId }).exec();
     }
 
     async createBillingRequest(paymentDto: PaymentDto): Promise<string> {
