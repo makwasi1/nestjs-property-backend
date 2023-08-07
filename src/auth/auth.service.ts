@@ -165,7 +165,7 @@ export class AuthService {
                 subject: 'Verify Email',
                 text: 'Verify Email',
                 html: 'Hi! <br><br> Thanks for your registration. Please use this link to verify your account.<br><br>' +
-                    '<a href='+'http://localhost:3000/auth/verify/' + model.emailToken + '>Click here to activate your account</a>'  // html body
+                    '<a href='+'https://aesari.com/auth/sign-in' + model.emailToken + '>Click here to activate your account</a>'  // html body
             };
 
             let sent = await new Promise<boolean>(async function (resolve, reject) {
@@ -212,7 +212,7 @@ export class AuthService {
                 subject: 'Frogotten Password',
                 text: 'Forgot Password',
                 html: 'Hi! <br><br> If you requested to reset your password<br><br>' +
-                    '<a href='+'http://localhost:3000/auth/reset-password/' + tokenModel.newPasswordToken + '>Click here</a>'  // html body
+                    '<a href='+'https://aesari.com/auth/sign-in' + tokenModel.newPasswordToken + '>Click here</a>'  // html body
             };
 
             var sent = await new Promise<boolean>(async function (resolve, reject) {
